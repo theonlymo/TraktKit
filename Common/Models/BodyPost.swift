@@ -56,38 +56,137 @@ class TraktCommentBody: TraktSingleObjectBody<SyncId> {
 }
 
 /// ID used to sync with Trakt.
+public struct TMDBSyncId: Codable, Hashable {
+    /// Trakt id of the movie / show / season / episode
+    public let tmdb: Int
+
+    enum CodingKeys: String, CodingKey {
+        case tmdb
+    }
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(tmdb, forKey: .tmdb)
+
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.tmdb = try container.decode(Int.self, forKey: .tmdb)
+
+    }
+
+    public init(tmdb: Int) {
+        self.tmdb = tmdb
+    }
+}
+
+
+/// ID used to sync with Trakt.
 public struct SyncId: Codable, Hashable {
     /// Trakt id of the movie / show / season / episode
     public let trakt: Int
-    
+    public let tmdb: Int?
+
     enum CodingKeys: String, CodingKey {
         case ids
     }
-    
+
     enum IDCodingKeys: String, CodingKey {
         case trakt
+        case tmdb
     }
-    
+
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         var nested = container.nestedContainer(keyedBy: IDCodingKeys.self, forKey: .ids)
-        try nested.encode(trakt, forKey: .trakt)
+        if trakt != 0 {
+            try nested.encode(trakt, forKey: .trakt)
+        }
+        try nested.encodeIfPresent(tmdb, forKey: .tmdb)
+
     }
-    
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let nested = try container.nestedContainer(keyedBy: IDCodingKeys.self, forKey: .ids)
-        self.trakt = try nested.decode(Int.self, forKey: .trakt)
+        self.trakt = try nested.decodeIfPresent(Int.self, forKey: .trakt) ?? 0
+        self.tmdb = try nested.decodeIfPresent(Int.self, forKey: .tmdb)
+
+    }
+
+    public init(trakt: Int = 0, tmdb: Int? = nil) {
+        self.trakt = trakt
+        self.tmdb = tmdb
+    }
+}
+// MARK: - HistoryShow
+public struct AddToHistoryShow: Encodable {
+  
+    public let ids: AddToHistoryIDS
+    public let seasons: [AddToHistorySeason]
+
+    enum CodingKeys: String, CodingKey {
+        case ids = "ids"
+        case seasons
     }
     
-    public init(trakt: Int) {
-        self.trakt = trakt
+    public init(ids: AddToHistoryIDS, seasons: [AddToHistorySeason]) {
+        self.ids = ids
+        self.seasons = seasons
+    }
+    
+}
+
+// MARK: - IDS
+public struct AddToHistoryIDS: Encodable {
+   
+    public let tmdb: Int
+
+    enum CodingKeys: String, CodingKey {
+        case tmdb
+    }
+    public init(tmdb: Int) {
+        self.tmdb = tmdb
+    }
+    
+}
+
+// MARK: - Season
+public struct AddToHistorySeason: Encodable {
+    
+    public let number: Int
+    public let episodes: [AddToHistoryEpisode]
+
+    enum CodingKeys: String, CodingKey {
+        case number
+        case episodes
+    }
+    public init(number: Int, episodes: [AddToHistoryEpisode]) {
+        self.number = number
+        self.episodes = episodes
+    }
+    
+}
+
+// MARK: - Episode
+public struct AddToHistoryEpisode: Codable {
+    public init(watchedAt: Date? = nil, number: Int) {
+        self.watchedAt = watchedAt
+        self.number = number
+    }
+    
+    let watchedAt: Date?
+    let number: Int
+
+    enum CodingKeys: String, CodingKey {
+        case watchedAt
+        case number
     }
 }
 
 public struct AddToHistoryId: Encodable, Hashable {
     /// Trakt id of the movie / show / season / episode
-    public let trakt: Int
+    public let id: TMDBSyncId
     /// UTC datetime when the item was watched.
     public let watchedAt: Date?
     
@@ -95,19 +194,15 @@ public struct AddToHistoryId: Encodable, Hashable {
         case ids, watchedAt = "watched_at"
     }
     
-    enum IDCodingKeys: String, CodingKey {
-        case trakt
-    }
     
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        var nested = container.nestedContainer(keyedBy: IDCodingKeys.self, forKey: .ids)
-        try nested.encode(trakt, forKey: .trakt)
+        try container.encodeIfPresent(id, forKey: .ids)
         try container.encodeIfPresent(watchedAt, forKey: .watchedAt)
     }
     
-    public init(trakt: Int, watchedAt: Date?) {
-        self.trakt = trakt
+    public init(id: TMDBSyncId, watchedAt: Date?) {
+        self.id = id
         self.watchedAt = watchedAt
     }
 }
