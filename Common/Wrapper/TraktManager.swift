@@ -22,7 +22,7 @@ public class TraktManager {
     
     private enum Constants {
         static let tokenExpirationDefaultsKey = "accessTokenExpirationDate"
-        static let oneDay: TimeInterval = 86400
+        static let oneHour: TimeInterval = 3600
     }
     
     // MARK: Internal
@@ -507,7 +507,7 @@ public class TraktManager {
         guard let expiredDate = UserDefaults.standard.object(forKey: Constants.tokenExpirationDefaultsKey) as? Date else {
             return .noTokens
         }
-        let refreshDate = expiredDate.addingTimeInterval(-Constants.oneDay)
+        let refreshDate = expiredDate.addingTimeInterval(-Constants.oneHour)
         let now = Date()
         
         if now >= expiredDate {
