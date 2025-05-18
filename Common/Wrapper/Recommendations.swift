@@ -19,8 +19,8 @@ extension TraktManager {
      ✨ Extended Info
      */
     @discardableResult
-    public func getRecommendedMovies(completion: @escaping ObjectsCompletionHandler<TraktMovie>) -> URLSessionDataTaskProtocol? {
-        return getRecommendations(.Movies, completion: completion)
+    public func getRecommendedMovies(pagination: Pagination? = nil, completion: @escaping ObjectsCompletionHandler<TraktMovie>) -> URLSessionDataTaskProtocol? {
+        return getRecommendations(.Movies,pagination: pagination, completion: completion)
     }
     
     /**
@@ -39,8 +39,8 @@ extension TraktManager {
      🔒 OAuth: Required
      */
     @discardableResult
-    public func getRecommendedShows(completion: @escaping ObjectsCompletionHandler<TraktShow>) -> URLSessionDataTaskProtocol? {
-        return getRecommendations(.Shows, completion: completion)
+    public func getRecommendedShows(pagination: Pagination? = nil, completion: @escaping ObjectsCompletionHandler<TraktShow>) -> URLSessionDataTaskProtocol? {
+        return getRecommendations(.Shows,pagination: pagination, completion: completion)
     }
     
     /**
@@ -56,9 +56,18 @@ extension TraktManager {
     // MARK: - Private
     
     @discardableResult
-    private func getRecommendations<T>(_ type: WatchedType, completion: @escaping ObjectsCompletionHandler<T>) -> URLSessionDataTaskProtocol? {
+    private func getRecommendations<T>(_ type: WatchedType,pagination: Pagination? = nil, completion: @escaping ObjectsCompletionHandler<T>) -> URLSessionDataTaskProtocol? {
+        
+        var query: [String: String] = [:]
+        
+        // pagination
+        if let pagination = pagination {
+            for (key, value) in pagination.value() {
+                query[key] = value
+            }
+        }
         guard let request = mutableRequest(forPath: "recommendations/\(type)",
-                                           withQuery: ["limit":"300"],
+                                           withQuery: query,
                                            isAuthorized: true,
                                            withHTTPMethod: .GET) else {
             completion(.error(error: nil))
@@ -72,7 +81,7 @@ extension TraktManager {
     @discardableResult
     private func hideRecommendation<T: CustomStringConvertible>(type: WatchedType, id: T, completion: @escaping SuccessCompletionHandler) -> URLSessionDataTaskProtocol? {
         guard let request = mutableRequest(forPath: "recommendations/\(type)/\(id)",
-                                           withQuery: ["limit":"300"],
+                                           withQuery: [:],
                                            isAuthorized: true,
                                            withHTTPMethod: .DELETE) else {
             completion(.fail)
