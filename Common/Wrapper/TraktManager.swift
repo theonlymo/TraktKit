@@ -164,7 +164,7 @@ public class TraktManager {
         
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.addValue("2", forHTTPHeaderField: "trakt-api-version")
-        request.addValue("200", forHTTPHeaderField: "X-Pagination-Limit")
+          
 
         if let clientID = clientID {
             request.addValue(clientID, forHTTPHeaderField: "trakt-api-key")
@@ -202,8 +202,6 @@ public class TraktManager {
         
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.addValue("2", forHTTPHeaderField: "trakt-api-version")
-        request.addValue("200", forHTTPHeaderField: "X-Pagination-Limit")
-
         if let clientID = clientID {
             request.addValue(clientID, forHTTPHeaderField: "trakt-api-key")
         }
@@ -238,8 +236,6 @@ public class TraktManager {
         
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.addValue("2", forHTTPHeaderField: "trakt-api-version")
-        request.addValue("200", forHTTPHeaderField: "X-Pagination-Limit")
-
         if let clientID = clientID {
             request.addValue(clientID, forHTTPHeaderField: "trakt-api-key")
         }
