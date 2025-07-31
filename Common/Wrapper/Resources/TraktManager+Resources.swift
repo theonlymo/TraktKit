@@ -9,7 +9,49 @@
 import Foundation
 
 extension TraktManager {
+    // MARK: - Recommendations
 
+    public func recommendations() -> RecommendationResource {
+        RecommendationResource(traktManager: self)
+    }
+
+    
+    // MARK: - Authentication
+
+    public func auth() -> AuthenticationResource {
+        AuthenticationResource(traktManager: self)
+    }
+
+    // MARK: - Checkin
+
+    public func checkin() -> CheckinResource {
+        CheckinResource(traktManager: self)
+    }
+
+    // MARK: - Search
+
+    public func search() -> SearchResource {
+        SearchResource(traktManager: self)
+    }
+
+    // MARK: - Movies
+
+    public var movies: MoviesResource {
+        MoviesResource(traktManager: self)
+    }
+
+    /// - parameter id: Trakt ID, Trakt slug, or IMDB ID
+    public func movie(id: CustomStringConvertible) -> MovieResource {
+        MovieResource(id: id, traktManager: self)
+    }
+
+    // MARK: - TV
+
+    public var shows: ShowsResource {
+        ShowsResource(traktManager: self)
+    }
+
+    /// - parameter id: Trakt ID, Trakt slug, or IMDB ID
     public func show(id: CustomStringConvertible) -> ShowResource {
         ShowResource(id: id, traktManager: self)
     }
@@ -21,16 +63,25 @@ extension TraktManager {
     public func episode(showId: CustomStringConvertible, season: Int, episode: Int) -> EpisodeResource {
         EpisodeResource(showId: showId, seasonNumber: season, episodeNumber: episode, traktManager: self)
     }
-    
+
+    public func sync() -> SyncResource {
+        SyncResource(traktManager: self)
+    }
+
+    // MARK: - User
+
     public func currentUser() -> CurrentUserResource {
-        CurrentUserResource()
+        CurrentUserResource(traktManager: self)
     }
     
-    public func user(_ username: String) -> UsersResource {
-        UsersResource(username: username, traktManager: self)
+    public func user(_ slug: String) -> UsersResource {
+        UsersResource(slug: slug, traktManager: self)
     }
     
-    public func search() -> SearchResource {
-        SearchResource(traktManager: self)
+    
+    //Mark: - scrobble
+    
+    public func scrobble() -> ScrobbleResource {
+        ScrobbleResource(traktManager: self)
     }
 }

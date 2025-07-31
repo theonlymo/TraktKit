@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct Airs: Codable, Hashable {
+public struct Airs: TraktObject {
     public let day: String?
     public let time: String?
     public let timezone: String?
@@ -20,7 +20,7 @@ public struct Airs: Codable, Hashable {
     }
 }
 
-public struct TraktShow: Codable, Hashable {
+public struct TraktShow: TraktObject {
     
     // Extended: Min
     public let title: String
@@ -83,8 +83,8 @@ public struct TraktShow: Codable, Hashable {
         certification = try container.decodeIfPresent(String.self, forKey: .certification)
         network = try container.decodeIfPresent(String.self, forKey: .network)
         country = try container.decodeIfPresent(String.self, forKey: .country)
-        trailer = try? container.decode(URL.self, forKey: .trailer)
-        homepage = try? container.decode(URL.self, forKey: .homepage)
+        trailer = try container.decodeIfPresent(URL.self, forKey: .trailer)
+        homepage = try container.decodeIfPresent(URL.self, forKey: .homepage)
         status = try container.decodeIfPresent(String.self, forKey: .status)
         rating = try container.decodeIfPresent(Double.self, forKey: .rating)
         votes = try container.decodeIfPresent(Int.self, forKey: .votes)

@@ -9,21 +9,32 @@
 import Foundation
 
 /// Body data for endpoints like `/sync/history` that contains Trakt Ids.
-struct TraktMediaBody<ID: Encodable>: Encodable {
+struct TraktMediaBody<ID: EncodableTraktObject>: EncodableTraktObject {
     let movies: [ID]?
     let shows: [ID]?
     let seasons: [ID]?
     let episodes: [ID]?
     let ids: [Int]?
+    /// Cast and crew, not users
     let people: [ID]?
-    
-    init(movies: [ID]? = nil, shows: [ID]? = nil, seasons: [ID]? = nil, episodes: [ID]? = nil, ids: [Int]? = nil, people: [ID]? = nil) {
+    let users: [ID]?
+
+    init(
+        movies: [ID]? = nil,
+        shows: [ID]? = nil,
+        seasons: [ID]? = nil,
+        episodes: [ID]? = nil,
+        ids: [Int]? = nil,
+        people: [ID]? = nil,
+        users: [ID]? = nil
+    ) {
         self.movies = movies
         self.shows = shows
         self.seasons = seasons
         self.episodes = episodes
         self.ids = ids
         self.people = people
+        self.users = users
     }
 }
 
@@ -55,138 +66,60 @@ class TraktCommentBody: TraktSingleObjectBody<SyncId> {
     }
 }
 
-/// ID used to sync with Trakt.
-public struct TMDBSyncId: Codable, Hashable {
+/**
+ Trakt or Slug ID to send to Trakt in POST requests related to media objects and users.
+ */
+public struct SyncId: TraktObject {
     /// Trakt id of the movie / show / season / episode
-    public let tmdb: Int
+    public let trakt: Int?
+    /// Slug id for movie / show / season / episode / user
+    public let slug: String?
 
-    enum CodingKeys: String, CodingKey {
-        case tmdb
-    }
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(tmdb, forKey: .tmdb)
-
-    }
-
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.tmdb = try container.decode(Int.self, forKey: .tmdb)
-
-    }
-
-    public init(tmdb: Int) {
-        self.tmdb = tmdb
-    }
-}
-
-
-/// ID used to sync with Trakt.
-public struct SyncId: Codable, Hashable {
-    /// Trakt id of the movie / show / season / episode
-    public let trakt: Int
+    /// TMDB id of the movie / show / season / episode
     public let tmdb: Int?
+
+    public let imdb: String?
 
     enum CodingKeys: String, CodingKey {
         case ids
     }
-
+    
     enum IDCodingKeys: String, CodingKey {
         case trakt
-        case tmdb
+        case slug
+        case tmdb = "tmdb"
+        case imdb = "imdb"
     }
-
+    
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         var nested = container.nestedContainer(keyedBy: IDCodingKeys.self, forKey: .ids)
-        if trakt != 0 {
-            try nested.encode(trakt, forKey: .trakt)
-        }
+        try nested.encodeIfPresent(trakt, forKey: .trakt)
+        try nested.encodeIfPresent(slug, forKey: .slug)
         try nested.encodeIfPresent(tmdb, forKey: .tmdb)
-
+        try nested.encodeIfPresent(imdb, forKey: .imdb)
     }
-
+    
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let nested = try container.nestedContainer(keyedBy: IDCodingKeys.self, forKey: .ids)
-        self.trakt = try nested.decodeIfPresent(Int.self, forKey: .trakt) ?? 0
+        self.trakt = try nested.decodeIfPresent(Int.self, forKey: .trakt)
+        self.slug = try nested.decodeIfPresent(String.self, forKey: .slug)
         self.tmdb = try nested.decodeIfPresent(Int.self, forKey: .tmdb)
-
+        self.imdb = try nested.decodeIfPresent(String.self, forKey: .tmdb)
     }
-
-    public init(trakt: Int = 0, tmdb: Int? = nil) {
+    
+    public init(trakt: Int? = nil, slug: String? = nil, tmdb: Int? = nil, imdb: String? = nil) {
         self.trakt = trakt
+        self.slug = slug
         self.tmdb = tmdb
-    }
-}
-// MARK: - HistoryShow
-public struct AddToHistoryShow: Encodable {
-  
-    public let ids: AddToHistoryIDS
-    public let seasons: [AddToHistorySeason]
-
-    enum CodingKeys: String, CodingKey {
-        case ids = "ids"
-        case seasons
-    }
-    
-    public init(ids: AddToHistoryIDS, seasons: [AddToHistorySeason]) {
-        self.ids = ids
-        self.seasons = seasons
-    }
-    
-}
-
-// MARK: - IDS
-public struct AddToHistoryIDS: Encodable {
-   
-    public let tmdb: Int
-
-    enum CodingKeys: String, CodingKey {
-        case tmdb
-    }
-    public init(tmdb: Int) {
-        self.tmdb = tmdb
-    }
-    
-}
-
-// MARK: - Season
-public struct AddToHistorySeason: Encodable {
-    
-    public let number: Int
-    public let episodes: [AddToHistoryEpisode]
-
-    enum CodingKeys: String, CodingKey {
-        case number
-        case episodes
-    }
-    public init(number: Int, episodes: [AddToHistoryEpisode]) {
-        self.number = number
-        self.episodes = episodes
-    }
-    
-}
-
-// MARK: - Episode
-public struct AddToHistoryEpisode: Codable {
-    public init(watchedAt: Date? = nil, number: Int) {
-        self.watchedAt = watchedAt
-        self.number = number
-    }
-    
-    let watchedAt: Date?
-    let number: Int
-
-    enum CodingKeys: String, CodingKey {
-        case watchedAt
-        case number
+        self.imdb = imdb
     }
 }
 
-public struct AddToHistoryId: Encodable, Hashable {
+public struct AddToHistoryId: EncodableTraktObject {
     /// Trakt id of the movie / show / season / episode
-    public let id: TMDBSyncId
+    public let id: SyncId
     /// UTC datetime when the item was watched.
     public let watchedAt: Date?
     
@@ -201,13 +134,13 @@ public struct AddToHistoryId: Encodable, Hashable {
         try container.encodeIfPresent(watchedAt, forKey: .watchedAt)
     }
     
-    public init(id: TMDBSyncId, watchedAt: Date?) {
+    public init(id: SyncId, watchedAt: Date?) {
         self.id = id
         self.watchedAt = watchedAt
     }
 }
 
-public struct RatingId: Encodable, Hashable {
+public struct RatingId: EncodableTraktObject {
     /// Trakt id of the movie / show / season / episode
     public let trakt: Int
     /// Between 1 and 10.
@@ -238,7 +171,7 @@ public struct RatingId: Encodable, Hashable {
     }
 }
 
-public struct CollectionId: Encodable, Hashable {
+public struct CollectionId: EncodableTraktObject {
     /// Trakt id of the movie / show / season / episode
     public let trakt: Int
     /// UTC datetime when the item was collected. Set to `released` to automatically use the inital release date.
@@ -288,5 +221,70 @@ public struct CollectionId: Encodable, Hashable {
         self.audio = audio
         self.audioChannels = audioChannels
         self.is3D = is3D
+    }
+}
+
+// MARK: - HistoryShow
+public struct AddToHistoryShow: TraktObject {
+  
+    public let ids: AddToHistoryIDS
+    public let seasons: [AddToHistorySeason]
+
+    enum CodingKeys: String, CodingKey {
+        case ids = "ids"
+        case seasons
+    }
+    
+    public init(ids: AddToHistoryIDS, seasons: [AddToHistorySeason]) {
+        self.ids = ids
+        self.seasons = seasons
+    }
+    
+}
+
+// MARK: - IDS
+public struct AddToHistoryIDS: TraktObject {
+   
+    public let tmdb: Int
+
+    enum CodingKeys: String, CodingKey {
+        case tmdb
+    }
+    public init(tmdb: Int) {
+        self.tmdb = tmdb
+    }
+    
+}
+
+// MARK: - Season
+public struct AddToHistorySeason: TraktObject {
+    
+    public let number: Int
+    public let episodes: [AddToHistoryEpisode]
+
+    enum CodingKeys: String, CodingKey {
+        case number
+        case episodes
+    }
+    public init(number: Int, episodes: [AddToHistoryEpisode]) {
+        self.number = number
+        self.episodes = episodes
+    }
+    
+}
+
+// MARK: - Episode
+public struct AddToHistoryEpisode: TraktObject {
+    public init(watchedAt: Date? = nil, number: Int) {
+        self.watchedAt = watchedAt
+        self.number = number
+    }
+    
+    let watchedAt: Date?
+    let number: Int
+
+    enum CodingKeys: String, CodingKey {
+        case watchedAt
+        case number
     }
 }

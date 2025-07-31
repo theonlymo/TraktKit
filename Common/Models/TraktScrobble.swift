@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct TraktScrobble: Encodable {
+public struct TraktScrobble: TraktObject {
     public let movie: SyncId?
     public let episode: SyncId?
     /// Progress percentage between 0 and 100.

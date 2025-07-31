@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct TraktMovie: Codable, Hashable {
+public struct TraktMovie: TraktObject {
 
     // Extended: Min
     public let title: String
@@ -61,8 +61,8 @@ public struct TraktMovie: Codable, Hashable {
         released = try container.decodeIfPresent(Date.self, forKey: CodingKeys.released)
         runtime = try container.decodeIfPresent(Int.self, forKey: CodingKeys.runtime)
         certification = try container.decodeIfPresent(String.self, forKey: .certification)
-        trailer = try? container.decode(URL.self, forKey: .trailer)
-        homepage = try? container.decode(URL.self, forKey: .homepage)
+        trailer = try container.decodeIfPresent(URL.self, forKey: .trailer)
+        homepage = try container.decodeIfPresent(URL.self, forKey: .homepage)
         rating = try container.decodeIfPresent(Double.self, forKey: .rating)
         votes = try container.decodeIfPresent(Int.self, forKey: .votes)
         updatedAt = try container.decodeIfPresent(Date.self, forKey: .updatedAt)
