@@ -244,7 +244,7 @@ extension Route where T: PagedObjectProtocol {
     /// Fetches all pages for a paginated endpoint, and returns the data in a Set.
     public func fetchAllPages<Element>(maxConcurrentRequests preferredMaxConcurrentRequests: Int = 10) async throws -> Set<Element> where T.Type == PagedObject<[Element]>.Type {
         // Fetch first page
-        let firstPage = try await self.page(1).perform()
+        let firstPage = try await self.page(1).limit(100000000).perform()
         var resultSet = Set<Element>(firstPage.object)
 
         // Return early if there's only one page
