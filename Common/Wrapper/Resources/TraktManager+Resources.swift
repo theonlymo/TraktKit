@@ -84,4 +84,46 @@ extension TraktManager {
     public func scrobble() -> ScrobbleResource {
         ScrobbleResource(traktManager: self)
     }
+    
+    // MARK: - Calendar
+    
+    public func calendar() -> CalendarResource {
+        CalendarResource(traktManager: self)
+    }
+    
+    // MARK: - Certification
+    
+    public func certification() -> CertificationResource {
+        CertificationResource(traktManager: self)
+    }
+    
+    // MARK: - Comment
+    
+    public func comment() -> CommentResource {
+        CommentResource(traktManager: self)
+    }
+    
+    // MARK: - Genre
+    
+    public func genre() -> GenreResource {
+        GenreResource(traktManager: self)
+    }
+    
+    // MARK: - Language
+    
+    public func language() -> LanguageResource {
+        LanguageResource(traktManager: self)
+    }
+    
+    // MARK: - List
+    
+    public func list() -> ListResource {
+        ListResource(traktManager: self)
+    }
+    
+    // MARK: - People
+    
+    public func people() -> PeopleResource {
+        PeopleResource(traktManager: self)
+    }
 }
